@@ -1,0 +1,20 @@
+requests
+os
+python-dotenv
+plotly.express
+flask
+pytest
+gunicorn
+json
+numpy
+pandas
+cvxpy
+matplotlib.pyplot
+seaborn
+gspread
+datetime
+
+# Below data is currently defunct
+# google.colab import auth
+# google.auth import default
+# google.colab import userdata
