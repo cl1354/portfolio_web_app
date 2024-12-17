@@ -34,7 +34,6 @@ def build_stock_list(stock):
         stock_v2.append(framework)
     return stock_v2
 
-
 def build_returns_df(stock_v1):
     stock_df = pd.DataFrame(stock_v1)
     stock_df.index += 1

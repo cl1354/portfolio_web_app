@@ -15,4 +15,4 @@ datetime
 # Below data is currently defunct
 # google.colab import auth
 # google.auth import default
-# google.colab import userdata
+google.colab import userdata
