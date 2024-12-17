@@ -1,17 +1,15 @@
 requests
-os
 python-dotenv
 plotly.express
 flask
 pytest
 gunicorn
-json
 numpy
 pandas
 cvxpy
-matplotlib.pyplot
 seaborn
 gspread
+gspread_models
 datetime
 
 # Below data is currently defunct
