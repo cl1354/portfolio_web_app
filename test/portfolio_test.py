@@ -1,14 +1,13 @@
-from app.portfolio import build_stock_list, build_returns_df
+from app.portfolio import fetch_sheets_to_pandas, fetch_stock_data
 import pandas as pd
+from app.key_requests import SHEETS_API_KEY, SHEETS_KEY
 
 def test_portfolio():
-    built_stock_list = build_stock_list("NFLX")
-    assert isinstance(built_stock_list, list)
-    for entry in built_stock_list:
-        assert list(entry.keys()) == ["Stock", "Date", "Adjusted Close"] # Used Google to learn how to make list of keys
+    portfolio_df = fetch_sheets_to_pandas(SHEETS_API_KEY, SHEETS_KEY)
+    assert isinstance(portfolio_df, pd.DataFrame) # Used Google to learn datatype for pandas DataFrame
+    assert portfolio_df.columns.tolist() == ["Stock", "Date", "Type", "Quantity"]
+    assert len(portfolio_df) != 0
 
-    built_returns_df = build_returns_df(built_stock_list)
-    assert isinstance(built_returns_df, pd.DataFrame) # Used Google to learn datatype for pandas DataFrame
-
-    columns = built_returns_df.columns.tolist()
-    assert columns == ["Date", "Total Portfolio Value", "Return"]
+    stock_data = fetch_stock_data("NFLX") # Using a sample stock
+    assert isinstance(stock_data, pd.DataFrame) # Used Google to learn datatype for pandas DataFrame
+    assert len(stock_data) != 0
