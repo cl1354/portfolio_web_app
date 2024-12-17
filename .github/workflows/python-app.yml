@@ -41,5 +41,6 @@ jobs:
         ALPHAVANTAGE_API_KEY: ${{ secrets.ALPHAVANTAGE_API_KEY }}
         SHEETS_API_KEY: ${{ secrets.SHEETS_API_KEY }}
         SHEETS_KEY: ${{ secrets.SHEETS_KEY }}
+        FLASK_APP: ${{ secrets.FLASK_APP }}
       run: |
         pytest
