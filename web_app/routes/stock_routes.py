@@ -3,8 +3,8 @@ import pandas as pd
 import gspread
 import plotly.express as px
 from app.alpha_service import API_KEY
-from app.spreadsheet_service import SHEETS_API_KEY
-from app.spreadsheet_service import SHEETS_KEY
+# from app.spreadsheet_service import SHEETS_API_KEY
+# from app.spreadsheet_service import SHEETS_KEY
 
 # Fetch Google Sheets Data
 def fetch_sheets_to_pandas(api_key, sheets_key):
