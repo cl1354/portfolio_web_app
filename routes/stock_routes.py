@@ -1,10 +1,11 @@
 from flask import render_template, request
 import pandas as pd
+import requests
 import gspread
 import plotly.express as px
-from app.alpha_service import API_KEY
-# from app.spreadsheet_service import SHEETS_API_KEY
-# from app.spreadsheet_service import SHEETS_KEY
+from Apps.key_requests import API_KEY
+from Apps.key_requests import SHEETS_API_KEY
+from Apps.key_requests import SHEETS_KEY
 
 # Fetch Google Sheets Data
 def fetch_sheets_to_pandas(api_key, sheets_key):
@@ -13,12 +14,12 @@ def fetch_sheets_to_pandas(api_key, sheets_key):
     spreadsheet = sh.sheet1.get_all_records(head=1)
     return pd.DataFrame(spreadsheet)
 
-# Fetch stock data from Alpha Vantage
+# Fetch stock data
 def fetch_stock_data(symbol):
     url = f"https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol={symbol}&apikey={API_KEY}&outputsize=full&datatype=csv"
     return pd.read_csv(url)
 
-# Configure Flask Routes
+# Configure Routes
 def configure_routes(app):
     @app.route("/", methods=["GET", "POST"])
     def index():
