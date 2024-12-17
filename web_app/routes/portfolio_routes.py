@@ -1,8 +1,6 @@
 from flask import Blueprint, request, render_template
 import pandas as pd
-import gspread
 import plotly.express as px
-from app.key_requests import API_KEY
 from app.key_requests import SHEETS_API_KEY
 from app.key_requests import SHEETS_KEY
 from app.portfolio import fetch_sheets_to_pandas, fetch_stock_data
