@@ -11,8 +11,3 @@ seaborn
 gspread
 gspread_models
 datetime
-
-# Below data is currently defunct
-# google.colab import auth
-# google.auth import default
-google.colab import userdata
