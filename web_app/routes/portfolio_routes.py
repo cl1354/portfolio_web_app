@@ -1,59 +1,67 @@
-from flask import Blueprint, request, render_template, redirect, flash
+from flask import Blueprint, request, render_template
+import pandas as pd
+import gspread
+import plotly.express as px
+from app.key_requests import API_KEY
+from app.key_requests import SHEETS_API_KEY
+from app.key_requests import SHEETS_KEY
+from app.portfolio import fetch_sheets_to_pandas, fetch_stock_data
 
-from app.portfolio import fetch_stocks_csv, format_usd
+# Fetch Google Sheets Data
+def fetch_sheets_to_pandas(api_key, sheets_key):
+    gc = gspread.api_key(api_key)
+    sh = gc.open_by_key(sheets_key)
+    spreadsheet = sh.sheet1.get_all_records(head=1)
+    return pd.DataFrame(spreadsheet)
+
+# Fetch stock data
+def fetch_stock_data(symbol):
+    url = f"https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol={symbol}&apikey={API_KEY}&outputsize=full&datatype=csv"
+    return pd.read_csv(url)
 
 portfolio_routes = Blueprint("portfolio_routes", __name__)
 
-@portfolio_routes.route("/portfolio/form")
-def portfolio_form():
-    print("PORTFOLIO FORM...")
-    return render_template("portfolio_form.html")
-@portfolio_routes.route("/portfolio/dashboard", methods=["GET", "POST"])
-def portfolio_dashboard():
-    print("PORTFOLIO DASHBOARD...")
-    if request.method == "POST":
-        # for data sent via POST request, form inputs are in request.form:
-        request_data = dict(request.form)
-        print("FORM DATA:", request_data)
-    else:
-        # for data sent via GET request, url params are in request.args
-        request_data = dict(request.args)
-        print("URL PARAMS:", request_data)
+# Configure Routes
+def configure_routes(app):
+    @portfolio_routes.route("/", methods=["GET", "POST"])
+    def index():
+        # Default values for date range and view mode
+        start_date = request.form.get("start_date", "2023-01-01")
+        end_date = request.form.get("end_date", "2024-01-01")
+        show_total = request.form.get("show_total", "false").lower() == "true"
 
-    symbol = request_data.get("symbol") or "NFLX" # get specific symbol or use default NFLX
+        # Fetch Google Sheets Data
+        df = fetch_sheets_to_pandas(SHEETS_API_KEY, SHEETS_KEY)
+        stocks = df['Stock'].unique()
 
-# Charles you need to remove all stocks routing references and do portfolio references instead
+        # Fetch stock data
+        stock_data = []
+        for stock in stocks:
+            data = fetch_stock_data(stock)
+            data["Stock"] = stock
+            stock_data.append(data)
 
-    try:
-        df = fetch_stocks_csv(symbol=symbol)
-        latest_close_usd = format_usd(df.iloc[0]["adjusted_close"])
-        latest_date = df.iloc[0]["timestamp"]
-        data = df.to_dict("records")
-        flash("Fetched Real-time Market Data!", "success")
-        return render_template("portfolio_dashboard.html",
-            symbol=symbol,
-            latest_close_usd=latest_close_usd,
-            latest_date=latest_date,
-            data=data
-        )
-    except Exception as err:
-        print('OOPS', err)
-        flash("Market Data Error. Please check your symbol and try again!", "danger")
-        return redirect("/portfolio/form")
-#
-# API ROUTES
-#
-@portfolio_routes.route("/api/portfolio.json")
-def portfolio_api():
-    print("PORTFOLIO DATA (API)...")
-    # for data supplied via GET request, url params are in request.args:
-    url_params = dict(request.args)
-    print("URL PARAMS:", url_params)
-    symbol = url_params.get("symbol") or "NFLX"
-    try:
-        df = fetch_stocks_csv(symbol=symbol)
-        data = df.to_dict("records") # convert dataframe to list of dict
-        return {"symbol": symbol, "data": data}
-    except Exception as err:
-        print('OOPS', err)
-        return {"message":"Market Data Error. Please try again."}, 404   
+        combined_df = pd.concat(stock_data)
+        combined_df = combined_df[["timestamp", "adjusted_close", "Stock"]]
+        combined_df.columns = ["Date", "Adjusted Close", "Stock"]
+        combined_df["Date"] = pd.to_datetime(combined_df["Date"])
+
+        # Filter data based on user-specified date range
+        mask = (combined_df["Date"] >= pd.to_datetime(start_date)) & (combined_df["Date"] <= pd.to_datetime(end_date))
+        filtered_df = combined_df[mask]
+
+        # Plot: Total Portfolio Value or Individual Stock Values
+        if show_total:
+            portfolio_value = filtered_df.groupby("Date")["Adjusted Close"].sum().reset_index()
+            fig = px.line(portfolio_value, x="Date", y="Adjusted Close", title="Total Portfolio Value Over Time")
+            fig.update_layout(template="plotly_dark", xaxis_title="Date", yaxis_title="Total Value ($)")
+        else:
+            fig = px.line(filtered_df, x="Date", y="Adjusted Close", color="Stock",
+                          title="Individual Stock Values Over Time")
+            fig.update_layout(template="plotly_dark", xaxis_title="Date", yaxis_title="Stock Value ($)")
+
+        # Convert the plot to HTML
+        plot_html = fig.to_html(full_html=False)
+
+        return render_template("portfolio.html", plot=plot_html, start_date=start_date, end_date=end_date, show_total=show_total)
+    

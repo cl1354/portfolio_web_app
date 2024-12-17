@@ -20,6 +20,18 @@ def reformat_date(date_str):
     parts = date_str.split('/')  # Split the date string into parts
     return f"{parts[2]}-{int(parts[0]):02d}-{int(parts[1]):02d}"
 
+# Fetch Google Sheets Data
+def fetch_sheets_to_pandas(api_key, sheets_key):
+    gc = gspread.api_key(api_key)
+    sh = gc.open_by_key(sheets_key)
+    spreadsheet = sh.sheet1.get_all_records(head=1)
+    return pd.DataFrame(spreadsheet)
+
+# Fetch stock data
+def fetch_stock_data(symbol):
+    url = f"https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol={symbol}&apikey={API_KEY}&outputsize=full&datatype=csv"
+    return pd.read_csv(url)
+
 def build_stock_list(stock):
     stock_v2 = []
     stock_url = f"https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol={stock}&interval=DAILY&date=2016-01-01&outputsize=full&apikey={API_KEY}"

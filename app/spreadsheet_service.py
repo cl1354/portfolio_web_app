@@ -1,7 +1,5 @@
 from pprint import pprint
-
 from app.db import service
-
 
 if __name__ == "__main__":
 
