@@ -16,6 +16,11 @@ def reformat_date(date_str):
     parts = date_str.split('/')  # Split the date string into parts
     return f"{parts[2]}-{int(parts[0]):02d}-{int(parts[1]):02d}"
 
+def format_value(number):
+    number = float(number)
+    formatted = format(number, '.3f')
+    return float(formatted)
+
 df = fetch_sheets_to_pandas(SHEETS_API_KEY,SHEETS_KEY)
 df['Date'] = df['Date'].apply(reformat_date)
 
@@ -27,7 +32,6 @@ for stock in stocks:
     stock_url = f'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol={stock}&interval=DAILY&date=2016-01-01&outputsize=full&apikey={API_KEY}'
     stock_r = requests.get(stock_url)
     stock_data = stock_r.json()
-    print(stock_data)
     for date, data in stock_data['Time Series (Daily)'].items():
        framework = {'Stock': stock,
                     'Date': date,
